@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/features/add_meal/data/data_sources/taco_food_data_source.dart';
+
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
@@ -16,6 +18,8 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
+
+import '../fixture/taco_fixtures.dart';
 
 class _FakeProductsRepository implements ProductsRepository {
   final Map<String, List<MealEntity>> offResults = {};
@@ -930,6 +934,39 @@ void main() {
 
       // Recipe (priority 2) appears before OFF cache (priority 4).
       expect(result.meals.first.source, MealSourceEntity.recipe);
+    });
+  });
+
+  group('SearchProductsUseCase with TACO', () {
+    test('TACO hits lead the Food tab, offline too, and are never cached',
+        () async {
+      final cache = _FakeRemoteSearchCacheDataSource();
+      final repo = _FakeProductsRepository()
+        ..fdcResults['feijao'] = [
+          _meal(code: '7', name: 'Beans, cooked', source: MealSourceEntity.fdc),
+        ];
+      final useCase = SearchProductsUseCase(
+        repo,
+        _FakeGetIntakeUsecase(),
+        _FakeCustomMealDataSource(),
+        cache,
+        _FakeRecipeDataSource(),
+        _FakeGetConfigUsecase(),
+        taco: TacoFoodDataSource([
+          food(561, 'Feijão, carioca, cozido', 14, aliases: ['feijão']),
+        ]),
+      );
+
+      final skipped = await useCase.searchFDCFoodByString(
+        'feijao',
+        skipRemote: true,
+      );
+      expect(skipped.meals.first.code, 'taco:561');
+
+      final full = await useCase.searchFDCFoodByString('feijao');
+      expect(full.meals.first.code, 'taco:561');
+      expect(full.meals.map((m) => m.code), contains('7'));
+      expect(cache.cached.map((m) => m.code), isNot(contains('taco:561')));
     });
   });
 }

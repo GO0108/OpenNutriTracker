@@ -1,10 +1,12 @@
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/features/add_meal/data/data_sources/taco_food_data_source.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_relevance_ranker.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 import 'package:opennutritracker/features/add_meal/util/portion_unit.dart';
 import 'package:opennutritracker/features/add_meal/util/resolver_relevance.dart';
+import 'package:opennutritracker/features/add_meal/util/taco_preference.dart';
 
 /// Below this the top candidate is a guess rather than an answer, and the
 /// review screen (#602) should say so instead of presenting it as settled.
@@ -82,7 +84,15 @@ class ResolveParsedMealsUseCase {
 
   final SearchProductsUseCase _searchProductsUseCase;
 
-  ResolveParsedMealsUseCase(this._searchProductsUseCase);
+  /// The bundled Brazilian table. Its confident hits are put ahead of every
+  /// other database's (see [preferTaco]); null in builds and tests that do
+  /// not load it.
+  final TacoFoodDataSource? _taco;
+
+  ResolveParsedMealsUseCase(
+    this._searchProductsUseCase, {
+    TacoFoodDataSource? taco,
+  }) : _taco = taco;
 
   /// Resolves every item concurrently. The two sources are independent and
   /// each already degrades to local-only results on failure inside
@@ -145,12 +155,19 @@ class ResolveParsedMealsUseCase {
     // this class auto-selects the top candidate, so its ordering alone is
     // not safe to log from. See resolver_relevance.dart.
     final counted = _isCounted(item);
-    var ranked = rankForResolution(merged, query, counted: counted);
+    final tacoHits = _taco?.confidentMeals(query) ?? const <MealEntity>[];
+    var ranked = preferTaco(
+      rankForResolution(merged, query, counted: counted),
+      tacoHits,
+    );
     if (counted) {
-      ranked = rankForResolution(
-        await _withFullOffRecords(ranked, query),
-        query,
-        counted: true,
+      ranked = preferTaco(
+        rankForResolution(
+          await _withFullOffRecords(ranked, query),
+          query,
+          counted: true,
+        ),
+        tacoHits,
       );
     }
 

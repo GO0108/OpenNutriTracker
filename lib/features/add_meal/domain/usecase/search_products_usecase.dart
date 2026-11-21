@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
+import 'package:opennutritracker/features/add_meal/data/data_sources/taco_food_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/meal_detail/util/hydrate_off_meal.dart';
@@ -42,14 +43,20 @@ class SearchProductsUseCase {
   final RecipeDataSource _recipeDataSource;
   final GetConfigUsecase _getConfigUsecase;
 
+  /// The bundled Brazilian table. Searched on every reference-database
+  /// query, offline, and never written to the remote-result cache — it is
+  /// already on the device.
+  final TacoFoodDataSource? _taco;
+
   SearchProductsUseCase(
     this._productsRepository,
     this._getIntakeUsecase,
     this._customMealDataSource,
     this._cachedOffMealDataSource,
     this._recipeDataSource,
-    this._getConfigUsecase,
-  );
+    this._getConfigUsecase, {
+    TacoFoodDataSource? taco,
+  }) : _taco = taco;
 
   /// [skipRemote] limits the search to local matches (custom meals, recipes,
   /// recent intake, cached results) and does not touch the network — used for
@@ -93,8 +100,9 @@ class SearchProductsUseCase {
     bool skipRemote = false,
     bool forResolution = false,
   }) async {
+    final taco = _taco?.search(searchString) ?? const <MealEntity>[];
     if (skipRemote) {
-      return _buildResult(searchString, const [],
+      return _buildResult(searchString, taco,
           remoteSkipped: true, cacheSource: MealSourceEntity.fdc);
     }
     final remote = await _safeRemoteCall(
@@ -105,7 +113,7 @@ class SearchProductsUseCase {
       ),
     );
     await _cacheRemoteResults(remote.meals);
-    return _buildResult(searchString, remote.meals,
+    return _buildResult(searchString, [...taco, ...remote.meals],
         remoteFailed: remote.failed, cacheSource: MealSourceEntity.fdc);
   }
 

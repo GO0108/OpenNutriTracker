@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/features/add_meal/data/data_sources/taco_food_data_source.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
@@ -7,6 +8,7 @@ import 'package:opennutritracker/features/add_meal/domain/usecase/search_product
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 
 import '../fixture/backend_sibling_fixtures.dart';
+import '../fixture/taco_fixtures.dart';
 
 MealEntity meal(
   String name, {
@@ -640,6 +642,64 @@ void main() {
       await ResolveParsedMealsUseCase(fake).resolve([eggs]);
 
       expect(fake.fullRecordLookups, hasLength(5));
+    });
+  });
+
+  group('TACO preference', () {
+    final taco = TacoFoodDataSource([
+      food(3, 'Arroz, tipo 1, cozido', 1, aliases: ['arroz']),
+      food(4, 'Arroz, tipo 1, cru', 1),
+      food(561, 'Feijão, carioca, cozido', 14, aliases: ['feijão']),
+    ]);
+
+    test('feijão: TACO beats an Open Food Facts dry-bean package', () async {
+      final search = _FakeSearch(
+        off: {
+          'feijão': [meal('Feijão Carioca Tipo 1')],
+        },
+      );
+      final out = await ResolveParsedMealsUseCase(
+        search,
+        taco: taco,
+      ).resolve([item('feijão', quantity: 140, unit: 'g')]);
+      expect(out.single.selected!.code, 'taco:561');
+    });
+
+    test('arroz resolves to cooked, never raw', () async {
+      final out = await ResolveParsedMealsUseCase(
+        _FakeSearch(),
+        taco: taco,
+      ).resolve([item('arroz', quantity: 150, unit: 'g')]);
+      expect(out.single.selected!.code, 'taco:3');
+      expect(
+        out.single.candidates.map((m) => m.code),
+        isNot(contains('taco:4')),
+      );
+    });
+
+    test("the user's own custom meal still comes first", () async {
+      final search = _FakeSearch(
+        off: {
+          'feijão': [meal('Feijão da vó', source: MealSourceEntity.custom)],
+        },
+      );
+      final out = await ResolveParsedMealsUseCase(
+        search,
+        taco: taco,
+      ).resolve([item('feijão', quantity: 140, unit: 'g')]);
+      expect(out.single.selected!.name, 'Feijão da vó');
+    });
+
+    test('TACO still resolves when every remote source throws', () async {
+      final search = _FakeSearch(
+        throwOff: {'feijão'},
+        throwSupabase: {'feijão'},
+      );
+      final out = await ResolveParsedMealsUseCase(
+        search,
+        taco: taco,
+      ).resolve([item('feijão', quantity: 140, unit: 'g')]);
+      expect(out.single.selected!.code, 'taco:561');
     });
   });
 }

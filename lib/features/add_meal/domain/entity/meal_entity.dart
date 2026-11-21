@@ -12,6 +12,7 @@ import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_food_dto.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_dto.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/taco_food.dart';
 import 'package:opennutritracker/features/add_meal/util/backend_title.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 
@@ -459,6 +460,61 @@ class MealEntity extends Equatable {
       servingSize: fdcFood.servingSizeUnit,
       nutriments: MealNutrimentsEntity.fromFDCNutriments(fdcFood.foodNutrients),
       source: MealSourceEntity.fdc,
+    );
+  }
+
+  /// A TACO food bundled with the app (`TacoFoodDataSource`).
+  ///
+  /// Tagged `fdc` like every other reference-database food — the enum is
+  /// persisted in Hive — with the true origin in [backendSource]. Its
+  /// [code] (`taco:<id>`) never parses as an int, so the backend portion
+  /// and label lookups keyed by numeric food id skip it.
+  factory MealEntity.fromTaco(TacoFood food) {
+    final unit = food.isBeverage ? 'ml' : 'g';
+    final first = food.portions.isEmpty ? null : food.portions.first;
+    return MealEntity(
+      code: food.code,
+      name: food.name,
+      url: null,
+      mealQuantity: null,
+      mealUnit: unit,
+      servingQuantity: first?.grams,
+      servingUnit: unit,
+      servingSize: first?.label,
+      servingSizeIsLocalized: first != null,
+      nutriments: MealNutrimentsEntity(
+        energyKcal100: food.kcal,
+        carbohydrates100: food.carbs,
+        fat100: food.fat,
+        proteins100: food.protein,
+        sugars100: null,
+        saturatedFat100: food.saturatedFat,
+        fiber100: food.fiber,
+        cholesterol100: food.cholesterol,
+        sodium100: food.sodium,
+        potassium100: food.potassium,
+        magnesium100: food.magnesium,
+        calcium100: food.calcium,
+        iron100: food.iron,
+        zinc100: food.zinc,
+        phosphorus100: food.phosphorus,
+        vitaminA100: food.vitaminA,
+        vitaminC100: food.vitaminC,
+        vitaminB6100: food.vitaminB6,
+        niacin100: food.niacin,
+      ),
+      source: MealSourceEntity.fdc,
+      backendSource: tacoSourceCode,
+      portions: [
+        for (final portion in food.portions)
+          MealPortionEntity(
+            label: portion.label,
+            englishLabel: portion.en,
+            gramWeight: portion.grams,
+            localized: true,
+          ),
+      ],
+      detailed: true,
     );
   }
 

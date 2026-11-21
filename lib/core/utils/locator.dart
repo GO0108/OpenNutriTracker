@@ -1,6 +1,8 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
+import 'package:opennutritracker/features/add_meal/data/data_sources/taco_food_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/favourite_meal_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service.dart';
@@ -162,6 +164,10 @@ Future<void> initLocator() async {
     () => secureAppStorageProvider,
   );
   locator.registerLazySingleton<HiveDBProvider>(() => hiveDBProvider);
+  // The bundled Brazilian food table: ~200 KB of JSON, parsed once.
+  locator.registerSingleton<TacoFoodDataSource>(
+    await TacoFoodDataSource.loadFromAsset(rootBundle),
+  );
   locator.registerLazySingleton<AiCredentialStorage>(
     () => AiCredentialStorage(),
   );
@@ -462,13 +468,17 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      taco: locator<TacoFoodDataSource>(),
     ),
   );
   // Per-navigation, matching how the AddMeal / Products / Food blocs that
   // drive the same screens are registered — it holds no state worth reusing
   // between one bulk-add session and the next.
   locator.registerFactory<ResolveParsedMealsUseCase>(
-    () => ResolveParsedMealsUseCase(locator()),
+    () => ResolveParsedMealsUseCase(
+      locator(),
+      taco: locator<TacoFoodDataSource>(),
+    ),
   );
   locator.registerLazySingleton<SearchProductByBarcodeUseCase>(
     () => SearchProductByBarcodeUseCase(

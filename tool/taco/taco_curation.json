@@ -1,0 +1,21 @@
+{
+  "1": {"aliases": ["arroz integral"], "portions": [{"label": "1 escumadeira", "en": "skimmer", "g": 85}, {"label": "1 colher de servir", "en": "spoon", "g": 45}]},
+  "3": {"aliases": ["arroz", "arroz branco"], "portions": [{"label": "1 escumadeira", "en": "skimmer", "g": 85}, {"label": "1 colher de servir", "en": "spoon", "g": 45}]},
+  "53": {"aliases": ["pão francês", "pãozinho", "pão", "pão de sal"], "portions": [{"label": "1 unidade", "en": "piece", "g": 50}]},
+  "91": {"aliases": ["batata", "batata cozida"], "portions": []},
+  "131": {"aliases": ["farofa"], "portions": []},
+  "182": {"aliases": ["banana"], "portions": [{"label": "1 unidade", "en": "piece", "g": 75}]},
+  "214": {"aliases": ["laranja"], "portions": [{"label": "1 unidade", "en": "piece", "g": 180}]},
+  "215": {"aliases": ["suco de laranja"], "portions": [{"label": "1 copo", "en": "cup", "g": 240}]},
+  "222": {"aliases": ["maçã"], "portions": [{"label": "1 unidade", "en": "piece", "g": 150}]},
+  "251": {"aliases": ["tangerina", "mexerica"], "portions": [{"label": "1 unidade", "en": "piece", "g": 135}]},
+  "326": {"aliases": ["carne moída"], "portions": []},
+  "346": {"aliases": ["bife", "bife grelhado", "contra-filé", "contra filé"], "portions": []},
+  "410": {"aliases": ["frango", "frango grelhado", "peito de frango", "filé de frango"], "portions": [{"label": "1 filé", "en": "piece", "g": 100}]},
+  "471": {"aliases": ["café"], "portions": [{"label": "1 xícara", "en": "cup", "g": 50}]},
+  "488": {"aliases": ["ovo", "ovo cozido", "ovos"], "portions": [{"label": "1 unidade", "en": "piece", "g": 45}]},
+  "490": {"aliases": ["ovo frito"], "portions": [{"label": "1 unidade", "en": "piece", "g": 50}]},
+  "494": {"aliases": ["açúcar"], "portions": [{"label": "1 colher de chá", "en": "teaspoon", "g": 5}]},
+  "561": {"aliases": ["feijão", "feijão carioca"], "portions": [{"label": "1 concha", "en": "ladle", "g": 140}]},
+  "567": {"aliases": ["feijão preto"], "portions": [{"label": "1 concha", "en": "ladle", "g": 140}]}
+}

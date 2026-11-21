@@ -144,6 +144,8 @@ flutter:
     # in unsplash_attribution.dart). Shipping them means Try Demo never
     # contacts Unsplash's CDN, at seed time or at render time.
     - assets/demo/meals/
+    # TACO (NEPA/UNICAMP) — bundled Brazilian food table, see tool/taco/.
+    - assets/taco/
 
   fonts:
     - family: CustomIcons
