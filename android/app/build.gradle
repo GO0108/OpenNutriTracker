@@ -97,6 +97,13 @@ android {
         full {
             dimension "version"
         }
+        // Personal Brazilian build (TACO, Unicamp RU menu): its own id so it
+        // installs beside the store app instead of clashing with its key.
+        br {
+            dimension "version"
+            applicationIdSuffix ".br"
+            versionNameSuffix "-br"
+        }
     }
     buildTypes {
         release {

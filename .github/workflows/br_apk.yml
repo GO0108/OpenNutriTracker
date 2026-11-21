@@ -1,0 +1,141 @@
+# Personal build of the `br` flavor (TACO, RU Unicamp menu): tests, a signed
+# release APK published as a GitHub release, and the logs pushed to the
+# `ci-logs` branch so they can be read without the Actions UI.
+#
+# Signing uses two repository secrets (Settings → Secrets and variables →
+# Actions): BR_KEYSTORE_B64 (the keystore, base64) and BR_KEYSTORE_PASSWORD.
+# Keep the same keystore forever: Android only installs an update signed with
+# the key that signed the installed app.
+name: BR APK
+
+on:
+  push:
+    branches: [br-main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: br-apk
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.6'
+          channel: stable
+          cache: true
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('android/**/*.gradle*', 'android/**/gradle-wrapper.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-
+
+      - name: Stub .env
+        run: |
+          printf '%s\n' \
+            'SENTRY_DNS="https://stub@sentry.io/0"' \
+            'SUPABASE_PROJECT_URL="https://stub.supabase.co"' \
+            'SUPABASE_PROJECT_ANON_KEY="ci-stub"' > .env
+          mkdir -p ci-logs
+
+      - name: Pub get
+        run: |
+          set -o pipefail
+          flutter pub get 2>&1 | tee ci-logs/1-pub-get.txt
+
+      - name: Code generation
+        run: |
+          set -o pipefail
+          dart run build_runner build --delete-conflicting-outputs 2>&1 \
+            | tail -300 | tee ci-logs/2-build-runner.txt
+
+      - name: Localizations
+        run: |
+          set -o pipefail
+          flutter gen-l10n 2>&1 | tee ci-logs/3-gen-l10n.txt
+
+      - name: Analyze
+        run: |
+          set -o pipefail
+          flutter analyze --no-fatal-infos --no-fatal-warnings 2>&1 \
+            | tee ci-logs/4-analyze.txt
+
+      - name: Test
+        run: |
+          set +e
+          flutter test --reporter expanded > ci-logs/5-test-full.txt 2>&1
+          rc=$?
+          grep -n -E 'FAILED|\[E\]|Error: |error: |Expected: |Actual: |Some tests failed|All tests passed' \
+            ci-logs/5-test-full.txt | head -500 > ci-logs/5-test-summary.txt
+          tail -40 ci-logs/5-test-full.txt >> ci-logs/5-test-summary.txt
+          exit $rc
+
+      - name: Signing config
+        env:
+          KEYSTORE_B64: ${{ secrets.BR_KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.BR_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
+            echo "Missing BR_KEYSTORE_B64 / BR_KEYSTORE_PASSWORD secrets" | tee ci-logs/6-signing.txt
+            exit 1
+          fi
+          echo "$KEYSTORE_B64" | base64 -d > android/app/br-release.jks
+          {
+            echo "storePassword=$KEYSTORE_PASSWORD"
+            echo "keyPassword=$KEYSTORE_PASSWORD"
+            echo "keyAlias=br"
+            echo "storeFile=br-release.jks"
+          } > android/key.properties
+          echo "signing configured" > ci-logs/6-signing.txt
+
+      - name: Build APK
+        run: |
+          set -o pipefail
+          flutter build apk --release --flavor br \
+            --build-number ${{ github.run_number }} 2>&1 \
+            | tail -300 | tee ci-logs/7-build-apk.txt
+          cp build/app/outputs/flutter-apk/app-br-release.apk ont-br.apk
+
+      - name: Publish release
+        if: success()
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: br-${{ github.run_number }}
+          name: ONT BR build ${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          make_latest: true
+          files: ont-br.apk
+          body: |
+            Personal build of the `br` flavor from ${{ github.sha }}.
+            On the phone, download `ont-br.apk` and open it to install or update.
+
+      - name: Push logs to ci-logs branch
+        if: always()
+        run: |
+          echo "status=${{ job.status }} sha=${{ github.sha }} run=${{ github.run_number }}" > ci-logs/STATUS.txt
+          rm -f android/key.properties android/app/br-release.jks
+          cp -r ci-logs /tmp/ci-logs
+          git config user.name "ci"
+          git config user.email "ci@users.noreply.github.com"
+          git checkout -q --orphan ci-logs-tmp
+          git rm -rfq --cached . > /dev/null
+          rm -rf ci-logs && mkdir ci-logs && cp /tmp/ci-logs/* ci-logs/
+          git add -f ci-logs
+          git commit -qm "logs run ${{ github.run_number }} (${{ job.status }})"
+          git push -f origin HEAD:refs/heads/ci-logs
