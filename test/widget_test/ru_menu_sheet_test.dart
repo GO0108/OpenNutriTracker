@@ -32,7 +32,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Almoço'));
     await tester.pumpAndSettle();
-    expect(result, startsWith('120 g cubos de frango ao molho shoyu'));
+    expect(result, startsWith('120 g peito de frango cozido'));
     expect(result, contains('1 laranja'));
   });
 

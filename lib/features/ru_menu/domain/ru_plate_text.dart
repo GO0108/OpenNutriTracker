@@ -1,5 +1,6 @@
 import 'package:opennutritracker/features/ru_menu/data/ru_menu_parser.dart';
 import 'package:opennutritracker/features/ru_menu/domain/ru_meal.dart';
+import 'package:opennutritracker/features/ru_menu/domain/ru_protein_map.dart';
 
 /// How much of each part of an RU tray to log by default. Estimates of a
 /// typical serving, meant to be corrected on the review screen — the tray
@@ -12,8 +13,6 @@ class RuPlateDefaults {
   final int saladG;
   final int dessertG;
   final int drinkMl;
-  final int breadG;
-  final bool includeBread;
 
   const RuPlateDefaults({
     this.mainG = 120,
@@ -23,8 +22,6 @@ class RuPlateDefaults {
     this.saladG = 40,
     this.dessertG = 40,
     this.drinkMl = 250,
-    this.breadG = 50,
-    this.includeBread = true,
   });
 }
 
@@ -42,7 +39,8 @@ String ruMealToLogText(
   final lines = <String>[];
   final main = meal.mainDish;
   if (main != null) {
-    lines.add('${defaults.mainG} g ${_lower(pickRestaurantVariant(main, restaurant: restaurant))}');
+    final dish = pickRestaurantVariant(main, restaurant: restaurant);
+    lines.add('${defaults.mainG} g ${ruProteinName(dish) ?? _lower(dish)}');
   }
   for (final raw in meal.items) {
     final item = pickRestaurantVariant(raw, restaurant: restaurant).toUpperCase();
@@ -67,7 +65,6 @@ String ruMealToLogText(
       lines.add('${defaults.sideG} g $name');
     }
   }
-  if (defaults.includeBread) lines.add('${defaults.breadG} g pão francês');
   return lines.join('\n');
 }
 
