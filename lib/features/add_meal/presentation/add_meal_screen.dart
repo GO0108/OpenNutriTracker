@@ -11,6 +11,7 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/navigation_predicates.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/taco_food.dart';
 import 'package:opennutritracker/features/add_meal/util/taco_preference.dart';
 import 'package:opennutritracker/features/ru_menu/presentation/ru_menu_sheet.dart';
@@ -121,6 +122,8 @@ class _AddMealScreenState extends State<AddMealScreen> {
         ModalRoute.of(context)?.settings.arguments as AddMealScreenArguments;
     _mealType = args.mealType;
     _day = args.day;
+    // BR fork: "Recently" is this meal's own history.
+    _recentMealBloc.scopeTo(_mealType.getIntakeType());
     super.didChangeDependencies();
   }
 
@@ -803,9 +806,14 @@ class _AddMealScreenState extends State<AddMealScreen> {
                   child: ListView.builder(
                     itemCount: state.recentMeals.length,
                     itemBuilder: (context, index) {
+                      final previous =
+                          index < state.recentIntakes.length
+                          ? state.recentIntakes[index]
+                          : null;
                       return _mealCard(
                         state.recentMeals[index],
                         state.usesImperialUnits,
+                        previous: previous,
                       );
                     },
                   ),
@@ -908,14 +916,36 @@ class _AddMealScreenState extends State<AddMealScreen> {
 
   /// A search result, wired to this screen's list: opening it adds there,
   /// and its + adds the default amount without opening it.
-  Widget _mealCard(MealEntity meal, bool usesImperialUnits) => MealItemCard(
+  /// [previous]: the intake this card comes from in the meal's history, so
+  /// its + adds the same amount again instead of a default serving.
+  Widget _mealCard(
+    MealEntity meal,
+    bool usesImperialUnits, {
+    IntakeEntity? previous,
+  }) => MealItemCard(
     day: _day,
     mealEntity: meal,
     addMealType: _mealType,
     usesImperialUnits: usesImperialUnits,
     logTray: _logTray,
-    onQuickAdd: () => _onQuickAddToTray(meal, usesImperialUnits),
+    onQuickAdd: previous != null && previous.amount > 0
+        ? () => _logTray.add(_repeatOf(previous))
+        : () => _onQuickAddToTray(meal, usesImperialUnits),
   );
+
+  /// The same food and amount as a past intake, ready for the log list.
+  LogTrayItem _repeatOf(IntakeEntity previous) {
+    final amount = previous.amount;
+    final shown = amount == amount.roundToDouble()
+        ? amount.toStringAsFixed(0)
+        : amount.toStringAsFixed(1);
+    return LogTrayItem(
+      meal: previous.meal,
+      unit: previous.unit,
+      amount: amount,
+      amountLabel: '$shown ${previous.meal.isLiquid ? 'ml' : 'g'}',
+    );
+  }
 
   Future<void> _onQuickAddToTray(
     MealEntity meal,

@@ -90,7 +90,7 @@ class _FakeGetIntakeUsecase implements GetIntakeUsecase {
   _FakeGetIntakeUsecase(this.recent);
 
   @override
-  Future<List<IntakeEntity>> getRecentIntake() async => recent;
+  Future<List<IntakeEntity>> getRecentIntake({IntakeTypeEntity? type}) async => recent;
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>

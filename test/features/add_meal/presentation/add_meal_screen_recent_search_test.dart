@@ -33,7 +33,7 @@ class _FakeGetIntakeUsecase implements GetIntakeUsecase {
   _FakeGetIntakeUsecase(this.recent);
 
   @override
-  Future<List<IntakeEntity>> getRecentIntake() async {
+  Future<List<IntakeEntity>> getRecentIntake({IntakeTypeEntity? type}) async {
     recentReads++;
     return recent;
   }

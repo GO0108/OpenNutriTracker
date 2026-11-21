@@ -1,3 +1,4 @@
+import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
@@ -52,7 +53,7 @@ class _FakeProductsRepository implements ProductsRepository {
 
 class _NoIntake implements GetIntakeUsecase {
   @override
-  Future<List<IntakeEntity>> getRecentIntake() async => const [];
+  Future<List<IntakeEntity>> getRecentIntake({IntakeTypeEntity? type}) async => const [];
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>

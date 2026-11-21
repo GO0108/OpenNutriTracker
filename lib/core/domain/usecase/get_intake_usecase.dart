@@ -113,8 +113,10 @@ class GetIntakeUsecase {
   /// its old name, nutrition and servings kept being offered (#1276). A
   /// recipe that still exists is offered as it is now; a deleted one keeps
   /// its last snapshot, and the intakes themselves are never rewritten.
-  Future<List<IntakeEntity>> getRecentIntake() async {
-    final recent = await _intakeRepository.getRecentIntake();
+  /// Most recent first, one entry per food. With [type], only what was
+  /// logged at that meal.
+  Future<List<IntakeEntity>> getRecentIntake({IntakeTypeEntity? type}) async {
+    final recent = await _intakeRepository.getRecentIntake(type: type);
     return recent.map((intake) {
       final meal = intake.meal;
       if (meal.source != MealSourceEntity.recipe || meal.code == null) {

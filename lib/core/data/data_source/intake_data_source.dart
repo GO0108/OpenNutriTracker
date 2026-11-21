@@ -141,8 +141,15 @@ class IntakeDataSource {
         .toList();
   }
 
-  Future<List<IntakeDBO>> getRecentlyAddedIntake({int number = 100000}) async {
-    final intakeList = _intakeBox.values.toList();
+  Future<List<IntakeDBO>> getRecentlyAddedIntake({
+    int number = 100000,
+    IntakeTypeDBO? type,
+  }) async {
+    // BR fork: [type] narrows the history to one meal — what was eaten at
+    // breakfast before, not at any meal.
+    final intakeList = _intakeBox.values
+        .where((intake) => type == null || intake.type == type)
+        .toList();
 
     //  sort list by date (newest first) and filter unique intake
     intakeList.sort((a, b) => (-1) * a.dateTime.compareTo(b.dateTime));

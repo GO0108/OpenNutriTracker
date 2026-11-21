@@ -69,7 +69,7 @@ class _FakeGetIntakeUsecase implements GetIntakeUsecase {
   int recentIntakeCallCount = 0;
 
   @override
-  Future<List<IntakeEntity>> getRecentIntake() async {
+  Future<List<IntakeEntity>> getRecentIntake({IntakeTypeEntity? type}) async {
     recentIntakeCallCount++;
     return recentIntake;
   }

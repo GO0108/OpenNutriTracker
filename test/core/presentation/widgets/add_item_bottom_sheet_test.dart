@@ -30,7 +30,7 @@ Widget _wrapWithMaterial(Widget child) {
 
 class _FakeGetIntakeUsecase implements GetIntakeUsecase {
   @override
-  Future<List<IntakeEntity>> getRecentIntake() async => [
+  Future<List<IntakeEntity>> getRecentIntake({IntakeTypeEntity? type}) async => [
     for (var i = 0; i < 2; i++)
       IntakeEntity(
         id: 'recent-$i',

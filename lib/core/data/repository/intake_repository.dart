@@ -54,8 +54,10 @@ class IntakeRepository {
         .toList();
   }
 
-  Future<List<IntakeEntity>> getRecentIntake() async {
-    final intakeList = await _intakeDataSource.getRecentlyAddedIntake();
+  Future<List<IntakeEntity>> getRecentIntake({IntakeTypeEntity? type}) async {
+    final intakeList = await _intakeDataSource.getRecentlyAddedIntake(
+      type: type == null ? null : IntakeTypeDBO.fromIntakeTypeEntity(type),
+    );
 
     return intakeList
         .map((intakeDBO) => IntakeEntity.fromIntakeDBO(intakeDBO))

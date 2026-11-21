@@ -1,3 +1,4 @@
+import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -40,7 +41,7 @@ class _FakeGetConfigUsecase implements GetConfigUsecase {
 /// Nothing logged yet — the case #1307 is about.
 class _NoRecentIntake implements GetIntakeUsecase {
   @override
-  Future<List<IntakeEntity>> getRecentIntake() async => [];
+  Future<List<IntakeEntity>> getRecentIntake({IntakeTypeEntity? type}) async => [];
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>

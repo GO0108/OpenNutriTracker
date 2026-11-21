@@ -12,6 +12,7 @@
 
 import 'dart:async';
 
+import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -73,7 +74,7 @@ class _FakeProductsRepository implements ProductsRepository {
 
 class _FakeGetIntakeUsecase implements GetIntakeUsecase {
   @override
-  Future<List<IntakeEntity>> getRecentIntake() async => const [];
+  Future<List<IntakeEntity>> getRecentIntake({IntakeTypeEntity? type}) async => const [];
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>

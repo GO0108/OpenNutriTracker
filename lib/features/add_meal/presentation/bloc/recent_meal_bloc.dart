@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -23,6 +24,16 @@ class RecentMealBloc extends Bloc<RecentMealEvent, RecentMealState> {
   /// Kept as a future so a keystroke that arrives while a load is still
   /// running waits for that load rather than starting a second one.
   Future<_RecentSnapshot>? _snapshot;
+
+  /// BR fork: the meal this list belongs to. Set by the add-food screen so
+  /// "Recently" is the history of breakfast, lunch or dinner on their own.
+  IntakeTypeEntity? _mealType;
+
+  void scopeTo(IntakeTypeEntity? mealType) {
+    if (mealType == _mealType) return;
+    _mealType = mealType;
+    _snapshot = null;
+  }
 
   RecentMealBloc(this._getIntakeUsecase, this._getConfigUsecase)
       : super(RecentMealInitial()) {
@@ -52,9 +63,11 @@ class RecentMealBloc extends Bloc<RecentMealEvent, RecentMealState> {
       final matches = query.isEmpty
           ? snapshot.intakes
           : snapshot.intakes.where(matchesSearchString(query));
+      final intakes = matches.toList();
       emit(
         RecentMealLoadedState(
-          recentMeals: matches.map((intake) => intake.meal).toList(),
+          recentMeals: intakes.map((intake) => intake.meal).toList(),
+          recentIntakes: intakes,
           usesImperialUnits: snapshot.usesImperialUnits,
         ),
       );
@@ -68,7 +81,9 @@ class RecentMealBloc extends Bloc<RecentMealEvent, RecentMealState> {
 
   Future<_RecentSnapshot> _loadSnapshot() async {
     final config = await _getConfigUsecase.getConfig();
-    final recentIntake = await _getIntakeUsecase.getRecentIntake();
+    final recentIntake = await _getIntakeUsecase.getRecentIntake(
+      type: _mealType,
+    );
     return _RecentSnapshot(recentIntake, config.usesImperialFoodUnits);
   }
 

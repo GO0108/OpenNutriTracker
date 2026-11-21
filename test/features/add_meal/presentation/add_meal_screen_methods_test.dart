@@ -30,7 +30,7 @@ import '../../../helpers/test_l10n.dart';
 
 class _FakeGetIntakeUsecase implements GetIntakeUsecase {
   @override
-  Future<List<IntakeEntity>> getRecentIntake() async => const [];
+  Future<List<IntakeEntity>> getRecentIntake({IntakeTypeEntity? type}) async => const [];
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>
