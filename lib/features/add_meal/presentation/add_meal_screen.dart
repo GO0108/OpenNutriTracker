@@ -928,29 +928,29 @@ class _AddMealScreenState extends State<AddMealScreen> {
     addMealType: _mealType,
     usesImperialUnits: usesImperialUnits,
     logTray: _logTray,
-    onQuickAdd: previous != null && previous.amount > 0
-        ? () => _logTray.add(_repeatOf(previous))
-        : () => _onQuickAddToTray(meal, usesImperialUnits),
+    onQuickAdd: () =>
+        _onQuickAddToTray(meal, usesImperialUnits, previous: previous),
   );
 
   /// The same food and amount as a past intake, ready for the log list.
-  LogTrayItem _repeatOf(IntakeEntity previous) {
+  LogTrayItem _repeatOf(IntakeEntity previous, MealEntity meal) {
     final amount = previous.amount;
     final shown = amount == amount.roundToDouble()
         ? amount.toStringAsFixed(0)
         : amount.toStringAsFixed(1);
     return LogTrayItem(
-      meal: previous.meal,
+      meal: meal,
       unit: previous.unit,
       amount: amount,
-      amountLabel: '$shown ${previous.meal.isLiquid ? 'ml' : 'g'}',
+      amountLabel: '$shown ${meal.isLiquid ? 'ml' : 'g'}',
     );
   }
 
   Future<void> _onQuickAddToTray(
     MealEntity meal,
-    bool usesImperialUnits,
-  ) async {
+    bool usesImperialUnits, {
+    IntakeEntity? previous,
+  }) async {
     final code = meal.code ?? '';
     // A second tap while the first is still fetching would add it twice.
     if (_quickAdding.contains(code)) return;
@@ -994,7 +994,12 @@ class _AddMealScreenState extends State<AddMealScreen> {
     }
     // No snackbar: the count on the log button is the confirmation, and a
     // snackbar would sit over the next result someone is about to tap.
-    _logTray.add(item);
+    // BR fork: from the meal's history, the amount logged last time.
+    _logTray.add(
+      previous != null && previous.amount > 0
+          ? _repeatOf(previous, meal)
+          : item,
+    );
   }
 
   /// The full record behind a thin Open Food Facts search hit, so the +

@@ -809,7 +809,9 @@ void main() {
       expect(_mealDetailBloc.writes.single.name, 'Oats');
     });
 
-    testWidgets('+ on a thin search hit uses the full record\'s serving', (
+    // BR fork: + on a history row repeats the amount logged last time
+    // (here 100 g), after the same hydration of the thin record.
+    testWidgets('+ on a thin history hit hydrates and repeats the amount', (
       tester,
     ) async {
       await _register([_meal('Granola', source: MealSourceEntity.off)]);
@@ -829,8 +831,8 @@ void main() {
 
       expect(_products.lookups, 1);
       final write = _mealDetailBloc.writes.single;
-      expect(write.unit, 'serving');
-      expect(write.amount, '45.0');
+      expect(write.unit, 'g');
+      expect(write.amount, '100.0');
     });
 
     testWidgets('+ keeps the thin record when the lookup fails', (
