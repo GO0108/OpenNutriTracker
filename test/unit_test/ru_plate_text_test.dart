@@ -41,6 +41,22 @@ void main() {
     );
   });
 
+  test('commas inside a dish do not split it into two items', () {
+    const meal = RuMeal(
+      kind: RuMealKind.veganDinner,
+      title: 'Jantar Vegano',
+      mainDish: 'TORTA DE MANDIOQUINHA COM CENOURA, PTS E AVEIA',
+      items: ['ARROZ INTEGRAL E FEIJÃO'],
+      notes: null,
+    );
+    final text = ruMealToLogText(meal);
+    expect(
+      text.split('\n').first,
+      '120 g torta de mandioquinha com cenoura pts e aveia',
+    );
+    expect(parseMealText(text).items, hasLength(4));
+  });
+
   test('the offline parser reads every line with its amount', () {
     final result = parseMealText(ruMealToLogText(ruLunch));
     final byQuery = {for (final i in result.items) i.query: i};

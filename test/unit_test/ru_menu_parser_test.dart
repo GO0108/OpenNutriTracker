@@ -48,25 +48,51 @@ void main() {
     );
   });
 
-  // A copy of the real page, saved by CI (tool/ru/fetch_sample.sh). Skipped
-  // until one is committed; it guards the parser against the live markup.
-  final real = File('test/fixture/ru/cardapio_sample.html');
-  test(
-    'real Prefeitura page parses into lunch and dinner with beans',
-    () {
-      final meals = parseRuMenuHtml(real.readAsStringSync());
-      expect(meals.map((m) => m.kind), contains(RuMealKind.lunch));
-      expect(meals.map((m) => m.kind), contains(RuMealKind.dinner));
-      for (final m in meals) {
-        expect(
-          m.items.any((i) => i.toUpperCase().contains('FEIJ')),
-          isTrue,
-          reason: '${m.title}: ${m.items}',
-        );
-      }
-    },
-    skip: real.existsSync() ? false : 'no saved page yet',
-  );
+  // Copies of the real Prefeitura page (fetched by CI, converted from
+  // ISO-8859-1 to UTF-8). The 17th labels its notes "Observações:", the 19th
+  // does not; both must read the same way.
+  group('real Prefeitura pages', () {
+    List<RuMeal> page(String day) => parseRuMenuHtml(
+      File('test/fixture/ru/cardapio_$day.html').readAsStringSync(),
+    );
+
+    test('2026-11-19: four services, notes without a label', () {
+      final meals = page('2026-11-19');
+      expect(meals.map((m) => m.kind), [
+        RuMealKind.lunch,
+        RuMealKind.veganLunch,
+        RuMealKind.dinner,
+        RuMealKind.veganDinner,
+      ]);
+      final lunch = meals.first;
+      expect(lunch.mainDish, 'FRANGO ASSADO');
+      expect(lunch.items, [
+        'ARROZ E FEIJÃO',
+        'FAROFA CROCANTE (FARINHA DE MANDIOCA E BATATA PALHA)',
+        'SALADA DE ALFACE',
+        'BANANA (RS - HC COTUCA); LARANJA (RU)',
+        'REFRESCO DE CAJU',
+      ]);
+      expect(lunch.notes, startsWith('CONTÉM GLÚTEN NO PÃO.'));
+      expect(meals.last.mainDish,
+          'TORTA DE MANDIOQUINHA COM CENOURA, PTS E AVEIA');
+      expect(meals.last.items, contains('MAÇÃ'));
+    });
+
+    test('2026-11-17: labelled notes stay out of the items', () {
+      final meals = page('2026-11-17');
+      expect(meals, hasLength(4));
+      expect(meals[2].mainDish, 'CARNE MOÍDA AO POMODORO');
+      expect(meals[2].items, [
+        'ARROZ E FEIJÃO',
+        'MACARRÃO AO ALHO E ÓLEO',
+        'SALADA DE COUVE',
+        'MAÇÃ',
+        'REFRESCO DE MORANGO',
+      ]);
+      expect(meals[2].notes, startsWith('CONTÉM GLÚTEN'));
+    });
+  });
 
   group('pickRestaurantVariant', () {
     test('slash', () {
@@ -99,6 +125,29 @@ void main() {
 
     test('no annotation', () {
       expect(pickRestaurantVariant('SALADA DE ALFACE'), 'SALADA DE ALFACE');
+    });
+
+    test('semicolon with a dash-separated list', () {
+      expect(
+        pickRestaurantVariant('BANANA (RS - HC COTUCA); LARANJA (RU)'),
+        'LARANJA',
+      );
+      expect(
+        pickRestaurantVariant(
+          'BANANA (RS - HC COTUCA); LARANJA (RU)',
+          restaurant: 'RS',
+        ),
+        'BANANA',
+      );
+    });
+
+    test('a description in parentheses is dropped, not read as a list', () {
+      expect(
+        pickRestaurantVariant(
+          'FAROFA CROCANTE (FARINHA DE MANDIOCA E BATATA PALHA)',
+        ),
+        'FAROFA CROCANTE',
+      );
     });
 
     test('no match falls back to the first variant', () {

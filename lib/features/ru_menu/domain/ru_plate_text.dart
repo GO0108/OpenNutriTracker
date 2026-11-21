@@ -71,7 +71,13 @@ String ruMealToLogText(
   return lines.join('\n');
 }
 
-String _lower(String text) => text.trim().toLowerCase();
+/// Lower case, without the commas and semicolons the review screen splits
+/// items on — "torta de mandioquinha com cenoura, pts e aveia" is one dish.
+String _lower(String text) =>
+    text.replaceAll(_separators, ' ').replaceAll(_spaces, ' ').trim().toLowerCase();
+
+final _separators = RegExp(r'[,;+]');
+final _spaces = RegExp(r'\s+');
 
 final _riceAndBeans = RegExp(r'^ARROZ( INTEGRAL)? E FEIJÃO$');
 

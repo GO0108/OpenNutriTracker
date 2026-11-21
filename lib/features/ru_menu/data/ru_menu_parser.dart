@@ -51,6 +51,11 @@ List<RuMeal> parseRuMenuHtml(String html) {
       return;
     }
     if (kind == null) return;
+    if (_pageEnd.hasMatch(line)) {
+      flush();
+      kind = null;
+      return;
+    }
 
     final notesStart = _notes.firstMatch(line);
     if (notesStart != null && notesStart.start == 0) {
@@ -59,6 +64,9 @@ List<RuMeal> parseRuMenuHtml(String html) {
       if (rest.isNotEmpty) notes.add(rest);
       return;
     }
+    // Some days carry no "Observações:" label and the allergen notes simply
+    // follow the last item; they read as sentences, the items do not.
+    if (!inNotes && _noteSentence.hasMatch(line)) inNotes = true;
     if (inNotes) {
       notes.add(line);
       return;
@@ -90,26 +98,47 @@ List<RuMeal> parseRuMenuHtml(String html) {
 
 /// The one variant of [item] served at [restaurant].
 ///
-/// The page writes per-restaurant alternatives in three ways —
-/// "LARANJA (RU, RA e HC) / MAÇÃ (RS)", "DOCE DE GOIABA (RA/RS/HC) | DOCE
-/// DE BANANA (RU)" and, with no separator at all, "ABOBRINHA REFOGADA
-/// (RS/RA E HC) COUVE REFOGADA (RU)". Each name is followed by the
-/// restaurants in parentheses. When none lists [restaurant] the first is
-/// taken; an item without annotations is returned trimmed.
+/// The page writes per-restaurant alternatives in several ways —
+/// "LARANJA (RU, RA e HC) / MAÇÃ (RS)", "BANANA (RS - HC COTUCA); LARANJA
+/// (RU)", "DOCE DE GOIABA (RA/RS/HC) | DOCE DE BANANA (RU)" and, with no
+/// separator at all, "ABOBRINHA REFOGADA (RS/RA E HC) COUVE REFOGADA (RU)".
+/// Each name is followed by its restaurants in parentheses. When none lists
+/// [restaurant] the first is taken.
+///
+/// Parentheses that are not a restaurant list — "FAROFA CROCANTE (FARINHA
+/// DE MANDIOCA E BATATA PALHA)" — describe the dish and are dropped.
 String pickRestaurantVariant(String item, {String restaurant = 'RU'}) {
-  final segments = _variant.allMatches(item).toList();
-  if (segments.isEmpty) return item.trim();
+  final cleaned = item
+      .replaceAllMapped(
+        _parenthetical,
+        (m) => _isRestaurantList(m.group(1)!) ? m.group(0)! : ' ',
+      )
+      .replaceAll(_spaces, ' ')
+      .trim();
+  final segments = _variant.allMatches(cleaned).toList();
+  if (segments.isEmpty) return cleaned;
   final wanted = restaurant.toUpperCase();
   for (final segment in segments) {
-    final codes = segment
-        .group(2)!
-        .split(_codeSeparator)
-        .map((c) => c.trim().toUpperCase())
-        .where((c) => c.isNotEmpty && c != 'E');
-    if (codes.contains(wanted)) return segment.group(1)!.trim();
+    if (_codes(segment.group(2)!).contains(wanted)) {
+      return segment.group(1)!.trim();
+    }
   }
   return segments.first.group(1)!.trim();
 }
+
+Iterable<String> _codes(String list) => list
+    .split(_codeSeparator)
+    .map((c) => c.trim().toUpperCase())
+    .where((c) => c.isNotEmpty && c != 'E');
+
+bool _isRestaurantList(String list) {
+  final codes = _codes(list).toList();
+  return codes.isNotEmpty && codes.every(_restaurantCodes.contains);
+}
+
+const _restaurantCodes = {
+  'RU', 'RA', 'RS', 'HC', 'CAISM', 'COTUCA', 'FOP', 'CPQBA', 'HEMOCENTRO', //
+};
 
 /// The visible text of [html], one trimmed, non-empty line per block.
 List<String> htmlToLines(String html) {
@@ -155,13 +184,22 @@ final _heading = RegExp(
   caseSensitive: false,
   unicode: true,
 );
+final _noteSentence = RegExp(
+  r'^(cont[ée]m\b|pode conter|n[ãa]o cont[ée]m|todos os dias|as refeiç|'
+  r'o cardápio|o atendimento|aten[çc][ãa]o)',
+  caseSensitive: false,
+  unicode: true,
+);
+// The queue cameras and links that follow the last menu on the page.
+final _pageEnd = RegExp(r'^acompanhe agora', caseSensitive: false);
 final _notes = RegExp(
   r'observaç(ões|oes)\s*:',
   caseSensitive: false,
   unicode: true,
 );
-final _variant = RegExp(r'([^()|/]+?)\s*\(([^)]*)\)\s*[|/]?\s*');
-final _codeSeparator = RegExp(r'[\s,/]+');
+final _variant = RegExp(r'([^()|/;]+?)\s*\(([^)]*)\)\s*[|/;]?\s*');
+final _parenthetical = RegExp(r'\(([^)]*)\)');
+final _codeSeparator = RegExp(r'[\s,/\-]+');
 
 final _scriptOrStyle = RegExp(
   r'<(script|style)\b[^>]*>[\s\S]*?</\1\s*>',
