@@ -34,6 +34,10 @@ class UserDBO extends HiveObject {
   // personal weight-goal preference rather than an app-wide setting.
   @HiveField(9)
   bool caloriesTaperEnabled;
+  // BR fork: the date the target weight should be reached by. Drives
+  // weeklyWeightGoalKg through ApplyTargetDateUsecase.
+  @HiveField(10)
+  DateTime? targetDate;
 
   UserDBO({
     required this.birthday,
@@ -46,6 +50,7 @@ class UserDBO extends HiveObject {
     this.caloriesProfile,
     this.targetWeightKg,
     this.caloriesTaperEnabled = false,
+    this.targetDate,
   });
 
   factory UserDBO.fromUserEntity(UserEntity entity) {
@@ -62,6 +67,7 @@ class UserDBO extends HiveObject {
           : CaloriesProfileDBO.fromEntity(entity.caloriesProfile!),
       targetWeightKg: entity.targetWeightKg,
       caloriesTaperEnabled: entity.caloriesTaperEnabled,
+      targetDate: entity.targetDate,
     );
   }
 }

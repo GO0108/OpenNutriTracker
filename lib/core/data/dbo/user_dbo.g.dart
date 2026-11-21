@@ -27,13 +27,14 @@ class UserDBOAdapter extends TypeAdapter<UserDBO> {
       caloriesProfile: fields[7] as CaloriesProfileDBO?,
       targetWeightKg: (fields[8] as num?)?.toDouble(),
       caloriesTaperEnabled: fields[9] == null ? false : fields[9] as bool,
+      targetDate: fields[10] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, UserDBO obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.birthday)
       ..writeByte(1)
@@ -53,7 +54,9 @@ class UserDBOAdapter extends TypeAdapter<UserDBO> {
       ..writeByte(8)
       ..write(obj.targetWeightKg)
       ..writeByte(9)
-      ..write(obj.caloriesTaperEnabled);
+      ..write(obj.caloriesTaperEnabled)
+      ..writeByte(10)
+      ..write(obj.targetDate);
   }
 
   @override

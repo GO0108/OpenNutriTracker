@@ -4,6 +4,7 @@ import 'dart:math' show max;
 import 'package:health/health.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:opennutritracker/core/data/data_source/health/external_weight.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_workout.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_connect_workout_reader.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service.dart';
@@ -62,8 +63,12 @@ class HealthPackageService implements HealthService {
   /// class doc.
   static const _iosBodyCompositionType = HealthDataType.BODY_FAT_PERCENTAGE;
 
+  /// BR fork: body weight, imported into the weight log.
+  static const _weightType = HealthDataType.WEIGHT;
+
   List<HealthDataType> get _readTypes => [
     _workoutType,
+    _weightType,
     if (_platform == HealthTargetPlatform.android) _androidEnergyType,
     if (_platform == HealthTargetPlatform.ios) _iosBodyCompositionType,
   ];
@@ -280,6 +285,31 @@ class HealthPackageService implements HealthService {
     if (ownKcal > 0) return ownKcal;
     final largestKcal = kcalBySource.values.fold(0.0, max);
     return largestKcal > 0 ? largestKcal : null;
+  }
+
+  @override
+  Future<List<ExternalWeight>> readWeights({
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    if (_platform == HealthTargetPlatform.unsupported) return const [];
+    final points = await _health.getHealthDataFromTypes(
+      types: const [_weightType],
+      startTime: from,
+      endTime: to,
+    );
+    final weights = <ExternalWeight>[];
+    for (final point in points) {
+      final value = point.value;
+      if (value is! NumericHealthValue) continue;
+      final kg = value.numericValue.toDouble();
+      // A reading outside any plausible adult weight is a unit or entry
+      // error, not a measurement worth putting in the log.
+      if (kg < 20 || kg > 400) continue;
+      weights.add(ExternalWeight(time: point.dateTo, kg: kg));
+    }
+    weights.sort((a, b) => a.time.compareTo(b.time));
+    return weights;
   }
 
   @override

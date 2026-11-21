@@ -67,6 +67,8 @@ import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.d
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/apply_target_date_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/import_weights_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/import_workouts_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/log_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/save_recipe_usecase.dart';
@@ -522,6 +524,12 @@ Future<void> initLocator() async {
       locator(),
       locator(),
     ),
+  );
+  locator.registerLazySingleton<ApplyTargetDateUsecase>(
+    () => ApplyTargetDateUsecase(locator()),
+  );
+  locator.registerLazySingleton<ImportWeightsUsecase>(
+    () => ImportWeightsUsecase(locator(), locator(), locator(), locator()),
   );
   locator.registerLazySingleton<DeleteUserActivityUsecase>(
     () => DeleteUserActivityUsecase(locator(), locator()),

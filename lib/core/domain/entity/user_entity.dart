@@ -32,6 +32,10 @@ class UserEntity {
   /// the surfacing behind that condition.
   bool caloriesTaperEnabled;
 
+  /// BR fork: the date [targetWeightKg] should be reached by. When both are
+  /// set, `ApplyTargetDateUsecase` derives [weeklyWeightGoalKg] from them.
+  DateTime? targetDate;
+
   UserEntity({
     required this.birthday,
     required this.heightCM,
@@ -43,6 +47,7 @@ class UserEntity {
     this.caloriesProfile,
     this.targetWeightKg,
     this.caloriesTaperEnabled = false,
+    this.targetDate,
   });
 
   factory UserEntity.fromUserDBO(UserDBO userDBO) {
@@ -59,6 +64,7 @@ class UserEntity {
           : CaloriesProfileEntity.fromDBO(userDBO.caloriesProfile!),
       targetWeightKg: userDBO.targetWeightKg,
       caloriesTaperEnabled: userDBO.caloriesTaperEnabled,
+      targetDate: userDBO.targetDate,
     );
   }
 

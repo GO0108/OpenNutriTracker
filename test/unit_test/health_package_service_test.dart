@@ -299,8 +299,10 @@ void main() {
         'nothing else', () async {
       await service.requestPermissions();
 
+      // BR fork: weight is asked for too, for the Samsung Health import.
       expect(health.requestedTypes, [
         HealthDataType.WORKOUT,
+        HealthDataType.WEIGHT,
         HealthDataType.TOTAL_CALORIES_BURNED,
       ]);
     });

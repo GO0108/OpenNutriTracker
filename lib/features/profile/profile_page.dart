@@ -16,6 +16,7 @@ import 'package:opennutritracker/core/presentation/widgets/calories_profile_info
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/bounds/validator.dart';
+import 'package:opennutritracker/core/utils/calc/goal_plan_calc.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
@@ -211,6 +212,20 @@ class _ProfilePageState extends State<ProfilePage> {
               onTap: () =>
                   _showSetTargetWeightDialog(context, user, bodyWeightUnit),
             ),
+            // BR fork: reach the target weight by a date; the weekly rate
+            // (and so the calorie goal) follows from it.
+            if (user.targetWeightKg != null)
+              _ProfileTile(
+                identifier: 'profile-target-date',
+                palette: palette,
+                icon: Icons.event_rounded,
+                title: S.of(context).profileTargetDate,
+                subtitle: user.targetDate == null
+                    ? S.of(context).profileTargetWeightNotSetLabel
+                    : '${MaterialLocalizations.of(context).formatMediumDate(user.targetDate!)}'
+                        ' · ${_weeklyGoalSubtitle(context, user, bodyWeightUnit)}',
+                onTap: () => _pickTargetDate(context, user),
+              ),
             // The opt-in linear taper scales the daily kcal deficit down
             // as current weight approaches the target. Surfaced here only
             // once a target weight is set, since without one the toggle
@@ -408,6 +423,53 @@ class _ProfilePageState extends State<ProfilePage> {
         final sign = displaySt > 0 ? '+' : '';
         return '$sign${displaySt.toStringAsFixed(2)} ${S.of(context).stLabel}'
             '${S.of(context).trendsPerWeekSuffix}';
+    }
+  }
+
+  /// Sets the date the target weight should be reached by and derives the
+  /// weekly rate from it, capped at [GoalPlanCalc.maxKgPerWeek].
+  Future<void> _pickTargetDate(BuildContext context, UserEntity user) async {
+    final now = DateTime.now();
+    final first = DateTime(now.year, now.month, now.day + 1);
+    final last = DateTime(now.year + 5, now.month, now.day);
+    var initial = user.targetDate ?? DateTime(2027, 2, 28);
+    if (initial.isBefore(first)) initial = first;
+    if (initial.isAfter(last)) initial = last;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: first,
+      lastDate: last,
+    );
+    if (picked == null) return;
+    user.targetDate = picked;
+    final targetKg = user.targetWeightKg;
+    final plan = targetKg == null
+        ? null
+        : GoalPlanCalc.plan(
+            currentKg: user.weightKG,
+            targetKg: targetKg,
+            today: now,
+            targetDate: picked,
+          );
+    if (plan != null) {
+      user.weeklyWeightGoalKg = plan.kgPerWeek;
+      user.goal = plan.kgPerWeek < 0
+          ? UserWeightGoalEntity.loseWeight
+          : UserWeightGoalEntity.gainWeight;
+    }
+    await _profileBloc.updateUser(user);
+    final safe = plan?.earliestSafeDate;
+    if (plan != null && plan.capped && safe != null && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            S.of(context).targetDateCapped(
+              MaterialLocalizations.of(context).formatMediumDate(safe),
+            ),
+          ),
+        ),
+      );
     }
   }
 

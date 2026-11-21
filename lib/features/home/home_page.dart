@@ -18,12 +18,16 @@ import 'package:opennutritracker/core/presentation/widgets/edit_activity_dialog.
 import 'package:opennutritracker/core/presentation/widgets/edit_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
+import 'package:opennutritracker/core/domain/usecase/apply_target_date_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/import_weights_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/import_workouts_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:opennutritracker/core/utils/calc/nutrition_adequacy_calc.dart';
+import 'package:opennutritracker/features/home/presentation/widgets/nutrition_adequacy_card.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/fasting_home_chip.dart';
@@ -213,6 +217,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               totalCarbsGoal: totalCarbsGoal,
               totalFatsGoal: totalFatsGoal,
               totalProteinsGoal: totalProteinsGoal,
+            ),
+            NutritionAdequacyCard(
+              adequacy: NutritionAdequacyCalc.evaluate(
+                kcalIntake: totalKcalSupplied,
+                kcalGoal: totalKcalDaily,
+                carbsG: totalCarbsIntake,
+                fatG: totalFatsIntake,
+                proteinG: totalProteinsIntake,
+                weightKg: userWeightKg,
+              ),
+              kcalIntake: totalKcalSupplied,
+              kcalGoal: totalKcalDaily,
             ),
             // Day-one / empty-day guidance: when nothing is logged yet, point
             // the way to the centre + rather than leaving a silent dashboard.
@@ -559,7 +575,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// waiting on this and nowhere to show an error.
   Future<void> _importHealthWorkouts() async {
     final imported = await locator<ImportWorkoutsUsecase>().importIfDue();
-    if (imported == 0 || !mounted) return;
+    // BR fork: body weight from Samsung Health / Health Connect, then the
+    // target-date rate, which follows the newest weight.
+    final weights = await locator<ImportWeightsUsecase>().importIfDue();
+    if (weights > 0) await locator<ApplyTargetDateUsecase>().apply();
+    if (imported + weights == 0 || !mounted) return;
     _homeBloc.add(const LoadItemsEvent());
     locator<DiaryBloc>().add(const LoadDiaryYearEvent());
     locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());

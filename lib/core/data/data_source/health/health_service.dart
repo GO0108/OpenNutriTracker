@@ -1,3 +1,4 @@
+import 'package:opennutritracker/core/data/data_source/health/external_weight.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_workout.dart';
 
 /// The app's whole surface onto the platform health store — Health Connect
@@ -28,4 +29,11 @@ abstract class HealthService {
   /// Null when nothing is recorded or the read was not permitted — the
   /// suggestion calculator treats that as "fall back to BMI".
   Future<double?> readLatestBodyFatPercent();
+
+  /// Body-weight readings in [from, to], oldest first. Empty when there are
+  /// none or the weight permission was not granted.
+  Future<List<ExternalWeight>> readWeights({
+    required DateTime from,
+    required DateTime to,
+  });
 }
