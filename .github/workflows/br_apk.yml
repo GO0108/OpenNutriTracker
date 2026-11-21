@@ -54,6 +54,15 @@ jobs:
             'SUPABASE_PROJECT_ANON_KEY="ci-stub"' > .env
           mkdir -p ci-logs
 
+      - name: Save a sample of the RU menu page
+        continue-on-error: true
+        run: |
+          for d in 2026-11-19 2026-11-17; do
+            curl -sS -m 20 -D "ci-logs/ru-$d.headers.txt" \
+              "https://sistemas.prefeitura.unicamp.br/apps/cardapio/index.php?d=$d" \
+              -o "ci-logs/ru-$d.html" || true
+          done
+
       - name: Pub get
         run: |
           set -o pipefail

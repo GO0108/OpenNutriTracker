@@ -11,6 +11,7 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/navigation_predicates.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/ru_menu/presentation/ru_menu_sheet.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/add_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/screens/bulk_add_screen.dart';
@@ -233,6 +234,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
                               _openBulkAdd(startWithPhoto: true),
                           onDescribePressed: () =>
                               setState(() => _describeOpen = !_describeOpen),
+                          onRuMenuPressed: _onRuMenuPressed,
                           describeOpen: _describeOpen,
                           showAi: !_aiHidden,
                         ),
@@ -1049,6 +1051,14 @@ class _AddMealScreenState extends State<AddMealScreen> {
     if (discard != true || !mounted) return;
     _logTray.clear();
     Navigator.of(context).pop();
+  }
+
+  /// The Unicamp restaurant tray of the day, as lines for the review
+  /// screen — the same path as Describe, with the amounts filled in.
+  Future<void> _onRuMenuPressed() async {
+    final text = await showRuMenuSheet(context, day: _day);
+    if (text == null || !mounted) return;
+    await _openBulkAdd(initialText: text);
   }
 
   /// Snap meal and Describe both end on the review screen: a photo or a

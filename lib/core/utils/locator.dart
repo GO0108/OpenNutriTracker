@@ -3,6 +3,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/taco_food_data_source.dart';
+import 'package:opennutritracker/features/ru_menu/data/ru_menu_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/favourite_meal_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service.dart';
@@ -176,6 +177,9 @@ Future<void> initLocator() async {
   // so building one each time the user taps Search would accumulate
   // sockets for the life of the process.
   locator.registerLazySingleton<http.Client>(() => http.Client());
+  locator.registerLazySingleton<RuMenuDataSource>(
+    () => RuMenuDataSource(locator<http.Client>()),
+  );
   locator.registerLazySingleton<ReadMealTextUseCase>(
     () => ReadMealTextUseCase(
       locator<AiCredentialStorage>(),

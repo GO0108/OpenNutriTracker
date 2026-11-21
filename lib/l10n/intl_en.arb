@@ -1570,5 +1570,49 @@
   "removeIngredientLabel": "Remove ingredient",
   "@removeIngredientLabel": {
     "description": "Tooltip and screen reader label of the delete button on a recipe ingredient row."
+  },
+  "ruMenuTile": "University restaurant",
+  "@ruMenuTile": {
+    "description": "Add-food tile and sheet title: log a tray from the Unicamp university restaurant menu of the day."
+  },
+  "ruMenuTileLabel": "RU menu",
+  "@ruMenuTileLabel": {
+    "description": "Short label of the add-food tile that opens the Unicamp university restaurant (RU) menu."
+  },
+  "ruMenuUnavailable": "No menu for this day",
+  "@ruMenuUnavailable": {
+    "description": "Shown in the university restaurant sheet when the day's menu could not be loaded or is empty."
+  },
+  "profileTargetDate": "Target date",
+  "@profileTargetDate": {
+    "description": "Profile row: the date by which the user wants to reach the target weight."
+  },
+  "targetDateCapped": "Too fast to be safe – using 1 kg/week. Earliest safe date: {date}",
+  "@targetDateCapped": {
+    "description": "Snackbar when the target date would need more than 1 kg per week.",
+    "placeholders": {"date": {"type": "String"}}
+  },
+  "adequacyTitle": "Today's balance",
+  "@adequacyTitle": {
+    "description": "Title of the home card comparing today's intake with goals and healthy ranges."
+  },
+  "adequacyNoData": "Log a meal to see your balance",
+  "@adequacyNoData": {
+    "description": "Home balance card before anything is logged today."
+  },
+  "adequacyKcal": "{intake} of {goal} kcal",
+  "@adequacyKcal": {
+    "description": "Home balance card: energy eaten against the daily goal.",
+    "placeholders": {"intake": {"type": "String"}, "goal": {"type": "String"}}
+  },
+  "adequacyMacroShare": "{name} {pct}% (target {min}–{max}%)",
+  "@adequacyMacroShare": {
+    "description": "Home balance card: share of energy from one macronutrient against its healthy range.",
+    "placeholders": {"name": {"type": "String"}, "pct": {"type": "String"}, "min": {"type": "String"}, "max": {"type": "String"}}
+  },
+  "adequacyProteinPerKg": "{value} g/kg protein (min {min})",
+  "@adequacyProteinPerKg": {
+    "description": "Home balance card: grams of protein per kg of body weight against the minimum.",
+    "placeholders": {"value": {"type": "String"}, "min": {"type": "String"}}
   }
 }

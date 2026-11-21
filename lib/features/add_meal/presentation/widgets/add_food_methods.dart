@@ -17,6 +17,9 @@ class AddFoodMethodTiles extends StatelessWidget {
   final VoidCallback onSnapMealPressed;
   final VoidCallback onDescribePressed;
 
+  /// Opens the Unicamp university restaurant menu; no tile when null.
+  final VoidCallback? onRuMenuPressed;
+
   /// Whether the describe panel below is open, so its tile reads as on.
   final bool describeOpen;
 
@@ -30,6 +33,7 @@ class AddFoodMethodTiles extends StatelessWidget {
     required this.onBarcodePressed,
     required this.onSnapMealPressed,
     required this.onDescribePressed,
+    this.onRuMenuPressed,
     required this.describeOpen,
     this.showAi = true,
   });
@@ -100,6 +104,23 @@ class AddFoodMethodTiles extends StatelessWidget {
             ),
           ),
         ),
+        if (onRuMenuPressed != null) ...[
+          const SizedBox(width: Dimens.spacing8),
+          Expanded(
+            child: Semantics(
+              identifier: 'add-food-ru-menu',
+              container: true,
+              child: _MethodTile(
+                icon: Icons.restaurant_rounded,
+                label: s.ruMenuTileLabel,
+                background: palette.surface,
+                foreground: palette.textStrong,
+                border: palette.border,
+                onPressed: onRuMenuPressed!,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
