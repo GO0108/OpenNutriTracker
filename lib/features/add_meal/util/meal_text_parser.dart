@@ -1,4 +1,5 @@
 import 'package:opennutritracker/core/utils/food_name_validator.dart';
+import 'package:opennutritracker/features/add_meal/util/pt_meal_text.dart';
 
 /// Upper bound for a parsed quantity, matching the manual-entry check in
 /// meal_detail_bottom_sheet.dart.
@@ -180,7 +181,13 @@ class MealTextParseResult {
 /// so a substring test reports a unit in exactly the phrase this exists to
 /// catch. [_leadingQuantity] and [_trailingQuantity] only see a unit when a
 /// number is against it.
-bool textStatesAUnit(String input) => _segment(
+///
+/// Portuguese unit words count too — "200 gramas de arroz" states a gram as
+/// surely as "200 g" does, and a model reporting it must be believed.
+bool textStatesAUnit(String input) =>
+    _statesAUnit(input) || _statesAUnit(ptUnitWordsToSymbols(input));
+
+bool _statesAUnit(String input) => _segment(
   input,
 ).any((segment) => _extractQuantityAndUnit(segment).unit != null);
 

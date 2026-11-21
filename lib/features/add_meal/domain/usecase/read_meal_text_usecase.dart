@@ -2,6 +2,7 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_text_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
+import 'package:opennutritracker/features/add_meal/util/pt_meal_text.dart';
 
 /// A model failure the user can act on, and which will not fix itself.
 ///
@@ -96,7 +97,11 @@ class ReadMealTextUseCase {
   ReadMealTextUseCase(this._credentials, this._interpreterFactory);
 
   Future<MealTextReading> read(String input, {String? localeCode}) async {
-    final parsed = parseMealText(input);
+    // A Portuguese UI reads spoken phrasing first — "duas conchas de
+    // feijão" — and hands the same result shape on.
+    final parsed = isPortugueseLocale(localeCode)
+        ? parsePtMealText(input)
+        : parseMealText(input);
 
     final selection = await _credentials.readSelection();
     if (selection == null) {
