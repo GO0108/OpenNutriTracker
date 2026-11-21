@@ -97,11 +97,17 @@ jobs:
 
       - name: Signing config
         env:
-          KEYSTORE_B64: ${{ secrets.BR_KEYSTORE_B64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.BR_KEYSTORE_PASSWORD }}
+          # Repository secrets; repository variables are accepted too, in
+          # case they were added under the Variables tab by mistake.
+          KEYSTORE_B64: ${{ secrets.BR_KEYSTORE_B64 || vars.BR_KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.BR_KEYSTORE_PASSWORD || vars.BR_KEYSTORE_PASSWORD }}
         run: |
           if [ -z "$KEYSTORE_B64" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
-            echo "Missing BR_KEYSTORE_B64 / BR_KEYSTORE_PASSWORD secrets" | tee ci-logs/6-signing.txt
+            {
+              echo "Missing signing values."
+              echo "BR_KEYSTORE_B64 present: $([ -n "$KEYSTORE_B64" ] && echo yes || echo no)"
+              echo "BR_KEYSTORE_PASSWORD present: $([ -n "$KEYSTORE_PASSWORD" ] && echo yes || echo no)"
+            } | tee ci-logs/6-signing.txt
             exit 1
           fi
           echo "$KEYSTORE_B64" | base64 -d > android/app/br-release.jks
