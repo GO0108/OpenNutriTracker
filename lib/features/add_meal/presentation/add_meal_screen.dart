@@ -11,6 +11,8 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/navigation_predicates.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/taco_food.dart';
+import 'package:opennutritracker/features/add_meal/util/taco_preference.dart';
 import 'package:opennutritracker/features/ru_menu/presentation/ru_menu_sheet.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/add_meal_bloc.dart';
@@ -570,7 +572,13 @@ class _AddMealScreenState extends State<AddMealScreen> {
                       final foods = fs is FoodLoadedState
                           ? fs.food
                           : const <MealEntity>[];
-                      final merged = mergeAndRankMeals(products, foods, query);
+                      // BR fork: the bundled TACO table leads, after the user's
+                      // own foods — it is the reference for Brazilian food.
+                      final ranked = mergeAndRankMeals(products, foods, query);
+                      final merged = preferTaco(ranked, [
+                        for (final meal in ranked)
+                          if (meal.backendSource == tacoSourceCode) meal,
+                      ]);
                       final imperial = ps is ProductsLoadedState
                           ? ps.usesImperialUnits
                           : (fs is FoodLoadedState

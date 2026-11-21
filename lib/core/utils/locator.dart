@@ -475,6 +475,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       taco: locator<TacoFoodDataSource>(),
+      backendEnabled: !Env.supabaseProjectUrl.contains('stub.supabase.co'),
     ),
   );
   // Per-navigation, matching how the AddMeal / Products / Food blocs that

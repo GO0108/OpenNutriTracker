@@ -48,6 +48,11 @@ class SearchProductsUseCase {
   /// already on the device.
   final TacoFoodDataSource? _taco;
 
+  /// False when this build has no food backend (the BR build ships a stub
+  /// URL): the reference search is then TACO alone, answered as a normal
+  /// result rather than as a failed request on every keystroke.
+  final bool _backendEnabled;
+
   SearchProductsUseCase(
     this._productsRepository,
     this._getIntakeUsecase,
@@ -56,7 +61,9 @@ class SearchProductsUseCase {
     this._recipeDataSource,
     this._getConfigUsecase, {
     TacoFoodDataSource? taco,
-  }) : _taco = taco;
+    bool backendEnabled = true,
+  }) : _taco = taco,
+       _backendEnabled = backendEnabled;
 
   /// [skipRemote] limits the search to local matches (custom meals, recipes,
   /// recent intake, cached results) and does not touch the network — used for
@@ -101,6 +108,9 @@ class SearchProductsUseCase {
     bool forResolution = false,
   }) async {
     final taco = _taco?.search(searchString) ?? const <MealEntity>[];
+    if (!_backendEnabled) {
+      return _buildResult(searchString, taco, cacheSource: MealSourceEntity.fdc);
+    }
     if (skipRemote) {
       return _buildResult(searchString, taco,
           remoteSkipped: true, cacheSource: MealSourceEntity.fdc);

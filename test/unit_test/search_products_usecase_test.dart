@@ -968,6 +968,27 @@ void main() {
       expect(full.meals.map((m) => m.code), contains('7'));
       expect(cache.cached.map((m) => m.code), isNot(contains('taco:561')));
     });
+
+    test('without a food backend TACO answers alone, not as a failure',
+        () async {
+      final repo = _FakeProductsRepository()..fdcThrowOn.add('feijao');
+      final useCase = SearchProductsUseCase(
+        repo,
+        _FakeGetIntakeUsecase(),
+        _FakeCustomMealDataSource(),
+        _FakeRemoteSearchCacheDataSource(),
+        _FakeRecipeDataSource(),
+        _FakeGetConfigUsecase(),
+        taco: TacoFoodDataSource([
+          food(561, 'Feijão, carioca, cozido', 14, aliases: ['feijão']),
+        ]),
+        backendEnabled: false,
+      );
+      final result = await useCase.searchFDCFoodByString('feijao');
+      expect(result.meals.single.code, 'taco:561');
+      expect(result.remoteSourceFailed, isFalse);
+      expect(result.remoteSourceEmpty, isFalse);
+    });
   });
 }
 
