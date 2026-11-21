@@ -16,6 +16,8 @@ import 'package:opennutritracker/core/presentation/widgets/calories_profile_info
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/bounds/validator.dart';
+import 'package:opennutritracker/core/utils/calc/goal_suggestion_calc.dart';
+import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/goal_plan_calc.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -226,6 +228,18 @@ class _ProfilePageState extends State<ProfilePage> {
                         ' · ${_weeklyGoalSubtitle(context, user, bodyWeightUnit)}',
                 onTap: () => _pickTargetDate(context, user),
               ),
+            // BR fork: what the weekly rate means for a day — how much to eat,
+            // or how much to move.
+            if (user.weeklyWeightGoalKg != null &&
+                user.weeklyWeightGoalKg != 0)
+              _ProfileTile(
+                identifier: 'profile-goal-suggestion',
+                palette: palette,
+                icon: Icons.lightbulb_outline_rounded,
+                title: S.of(context).goalSuggestionTitle,
+                subtitle: _goalSuggestionText(context, user),
+                onTap: () {},
+              ),
             // The opt-in linear taper scales the daily kcal deficit down
             // as current weight approaches the target. Surfaced here only
             // once a target weight is set, since without one the toggle
@@ -424,6 +438,32 @@ class _ProfilePageState extends State<ProfilePage> {
         return '$sign${displaySt.toStringAsFixed(2)} ${S.of(context).stLabel}'
             '${S.of(context).trendsPerWeekSuffix}';
     }
+  }
+
+  String _goalSuggestionText(BuildContext context, UserEntity user) {
+    final s = S.of(context);
+    final suggestion = GoalSuggestionCalc.suggest(
+      tdeeKcal: CalorieGoalCalc.getTdee(user),
+      kgPerWeek: user.weeklyWeightGoalKg ?? 0,
+      weightKg: user.weightKG,
+      floorKcal: CalorieGoalCalc.recommendedDailyKcalFloor(
+        gender: user.gender,
+        caloriesProfile: user.caloriesProfile,
+      ),
+    );
+    String kcal(double v) => v.round().toString();
+    final lines = [
+      s.goalSuggestionDiet(kcal(suggestion.dietOnlyKcal)),
+      if (suggestion.extraBurnKcal > 0)
+        s.goalSuggestionExtraBurn(kcal(suggestion.extraBurnKcal))
+      else
+        s.goalSuggestionWalk(
+          suggestion.walkMinutes.toString(),
+          kcal(suggestion.walkKcal),
+          kcal(suggestion.withWalkKcal),
+        ),
+    ];
+    return lines.join('\n');
   }
 
   /// Sets the date the target weight should be reached by and derives the

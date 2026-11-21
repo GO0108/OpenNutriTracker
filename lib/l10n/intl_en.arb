@@ -1614,5 +1614,24 @@
   "@adequacyProteinPerKg": {
     "description": "Home balance card: grams of protein per kg of body weight against the minimum.",
     "placeholders": {"value": {"type": "String"}, "min": {"type": "String"}}
+  },
+  "goalSuggestionTitle": "Suggested daily plan",
+  "@goalSuggestionTitle": {
+    "description": "Profile row: what the weekly weight rate means per day."
+  },
+  "goalSuggestionDiet": "Eat about {kcal} kcal a day",
+  "@goalSuggestionDiet": {
+    "description": "Suggested daily intake for the weekly rate, without planned exercise.",
+    "placeholders": {"kcal": {"type": "String"}}
+  },
+  "goalSuggestionWalk": "or walk briskly {minutes} min a day (≈{burn} kcal) and eat about {kcal} kcal",
+  "@goalSuggestionWalk": {
+    "description": "Alternative: a daily brisk walk and the intake that goes with it.",
+    "placeholders": {"minutes": {"type": "String"}, "burn": {"type": "String"}, "kcal": {"type": "String"}}
+  },
+  "goalSuggestionExtraBurn": "That is the safe minimum: also burn about {burn} kcal a day with exercise to keep the pace",
+  "@goalSuggestionExtraBurn": {
+    "description": "When the rate would need eating below the safe floor: the exercise needed on top.",
+    "placeholders": {"burn": {"type": "String"}}
   }
 }
