@@ -192,6 +192,7 @@ class SPConst {
         return 'uk';
       case SupportedLanguage.hu:
       case SupportedLanguage.es:
+      case SupportedLanguage.pt:
         // food_translation has no Hungarian or Spanish rows yet. Returning
         // the code would cost every search in these languages a
         // guaranteed-empty translation RPC before the English one, plus an
