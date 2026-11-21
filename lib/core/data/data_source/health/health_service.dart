@@ -36,4 +36,8 @@ abstract class HealthService {
     required DateTime from,
     required DateTime to,
   });
+
+  /// Steps in [from, to]. Null when the platform will not say — no grant,
+  /// no health store.
+  Future<int?> readSteps({required DateTime from, required DateTime to});
 }

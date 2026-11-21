@@ -100,6 +100,26 @@ class MainActivity : FlutterFragmentActivity() {
                     // Health Connect there is an uncaught exception on the
                     // main thread, which ends the process and cannot be caught
                     // from Dart.
+                    // BR fork: today's steps for the home card.
+                    "readStepsTotal" -> {
+                        val from = call.argument<Number>("fromMillis")?.toLong()
+                        val to = call.argument<Number>("toMillis")?.toLong()
+                        if (from == null || to == null) {
+                            result.error(
+                                "invalid_arguments",
+                                "readStepsTotal needs fromMillis and toMillis",
+                                null,
+                            )
+                            return@setMethodCallHandler
+                        }
+                        answerFromHealthConnect(result) {
+                            HealthConnectWorkoutReader.readStepsTotal(
+                                applicationContext,
+                                from,
+                                to,
+                            )
+                        }
+                    }
                     "hasWorkoutReadPermissions" -> answerFromHealthConnect(result) {
                         HealthConnectWorkoutReader.hasWorkoutReadPermissions(
                             applicationContext,

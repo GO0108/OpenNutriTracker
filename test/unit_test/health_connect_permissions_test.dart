@@ -156,12 +156,15 @@ void main() {
       expect(declared, contains('READ_WEIGHT'));
     });
 
+    test('BR fork: steps are declared for the home steps card', () {
+      expect(declared, contains('READ_STEPS'));
+    });
+
     test('the three permissions Play refused are not declared', () {
       expect(
         declared.intersection({
           'READ_BODY_FAT',
           'READ_DISTANCE',
-          'READ_STEPS',
         }),
         isEmpty,
         reason:
@@ -178,7 +181,12 @@ void main() {
       // that is the separate plugin test below.
       expect(
         declared,
-        {'READ_EXERCISE', 'READ_TOTAL_CALORIES_BURNED', 'READ_WEIGHT'},
+        {
+          'READ_EXERCISE',
+          'READ_TOTAL_CALORIES_BURNED',
+          'READ_WEIGHT',
+          'READ_STEPS',
+        },
         reason:
             'Every declared Health Connect permission has to be justified by '
             'a feature in the Play Console declaration form. Adding one here '
@@ -270,7 +278,12 @@ void main() {
         // actually shipped is the last place to be picky about spelling.
         expect(
           healthIn(mergedManifest.readAsStringSync()).kept,
-          {'READ_EXERCISE', 'READ_TOTAL_CALORIES_BURNED', 'READ_WEIGHT'},
+          {
+          'READ_EXERCISE',
+          'READ_TOTAL_CALORIES_BURNED',
+          'READ_WEIGHT',
+          'READ_STEPS',
+        },
           reason:
               '${mergedManifest.path} ships a health permission set the '
               'repo did not declare, and one the plugin check did not '

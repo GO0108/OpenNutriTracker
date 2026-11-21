@@ -30,4 +30,9 @@ class HealthImportRepository {
     required DateTime from,
     required DateTime to,
   }) async => await _healthService.readWeights(from: from, to: to);
+
+  Future<int?> getSteps({
+    required DateTime from,
+    required DateTime to,
+  }) async => await _healthService.readSteps(from: from, to: to);
 }

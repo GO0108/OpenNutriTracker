@@ -32,6 +32,8 @@
     <!-- BR fork: body weight from Samsung Health (scale or manual entries),
          imported into the weight log by ImportWeightsUsecase. -->
     <uses-permission android:name="android.permission.health.READ_WEIGHT"/>
+    <!-- BR fork: steps for the home card (personal build, not on Play). -->
+    <uses-permission android:name="android.permission.health.READ_STEPS"/>
 
     <!-- Provide required visibility configuration for API level 30 and above -->
     <queries>

@@ -31,4 +31,10 @@ class NoopHealthService implements HealthService {
     required DateTime from,
     required DateTime to,
   }) async => const <ExternalWeight>[];
+
+  @override
+  Future<int?> readSteps({
+    required DateTime from,
+    required DateTime to,
+  }) async => null;
 }

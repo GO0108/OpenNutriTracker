@@ -66,9 +66,13 @@ class HealthPackageService implements HealthService {
   /// BR fork: body weight, imported into the weight log.
   static const _weightType = HealthDataType.WEIGHT;
 
+  /// BR fork: steps, for the home card.
+  static const _stepsType = HealthDataType.STEPS;
+
   List<HealthDataType> get _readTypes => [
     _workoutType,
     _weightType,
+    _stepsType,
     if (_platform == HealthTargetPlatform.android) _androidEnergyType,
     if (_platform == HealthTargetPlatform.ios) _iosBodyCompositionType,
   ];
@@ -310,6 +314,21 @@ class HealthPackageService implements HealthService {
     }
     weights.sort((a, b) => a.time.compareTo(b.time));
     return weights;
+  }
+
+  @override
+  Future<int?> readSteps({
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    switch (_platform) {
+      case HealthTargetPlatform.android:
+        return await _workoutReader.readStepsTotal(from: from, to: to);
+      case HealthTargetPlatform.ios:
+        return await _health.getTotalStepsInInterval(from, to);
+      case HealthTargetPlatform.unsupported:
+        return null;
+    }
   }
 
   @override

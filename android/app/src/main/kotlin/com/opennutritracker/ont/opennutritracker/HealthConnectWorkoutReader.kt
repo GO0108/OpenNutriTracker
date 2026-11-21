@@ -3,6 +3,8 @@ package com.opennutritracker.ont.opennutritracker
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.ExerciseSessionRecord
+import androidx.health.connect.client.records.StepsRecord
+import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
@@ -47,6 +49,34 @@ object HealthConnectWorkoutReader {
             HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
         )
         return client.permissionController.getGrantedPermissions().containsAll(needed)
+    }
+
+    /**
+     * BR fork: total steps in `[from, to)`, or null when READ_STEPS is not
+     * granted. An aggregate rather than a sum of records: Health Connect
+     * de-duplicates overlapping sources (phone and watch both counting the
+     * same walk), which a plain sum would count twice.
+     */
+    suspend fun readStepsTotal(
+        context: Context,
+        fromMillis: Long,
+        toMillis: Long,
+    ): Long? {
+        val client = HealthConnectClient.getOrCreate(context)
+        val granted = client.permissionController.getGrantedPermissions()
+        if (!granted.contains(HealthPermission.getReadPermission(StepsRecord::class))) {
+            return null
+        }
+        val response = client.aggregate(
+            AggregateRequest(
+                metrics = setOf(StepsRecord.COUNT_TOTAL),
+                timeRangeFilter = TimeRangeFilter.between(
+                    Instant.ofEpochMilli(fromMillis),
+                    Instant.ofEpochMilli(toMillis),
+                ),
+            ),
+        )
+        return response[StepsRecord.COUNT_TOTAL] ?: 0L
     }
 
     /**

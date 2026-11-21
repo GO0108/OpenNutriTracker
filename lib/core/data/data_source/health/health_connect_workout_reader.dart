@@ -46,6 +46,20 @@ class HealthConnectWorkoutReader {
       await _methodChannel.invokeMethod<bool>('hasWorkoutReadPermissions') ??
       false;
 
+  /// BR fork: total steps in `[from, to)`, de-duplicated across sources by
+  /// Health Connect. Null when READ_STEPS is not granted. Throws like
+  /// [readExerciseSessions].
+  Future<int?> readStepsTotal({
+    required DateTime from,
+    required DateTime to,
+  }) async => await _methodChannel.invokeMethod<int>(
+    'readStepsTotal',
+    <String, dynamic>{
+      'fromMillis': from.millisecondsSinceEpoch,
+      'toMillis': to.millisecondsSinceEpoch,
+    },
+  );
+
   /// Sessions starting within `[from, to)`.
   ///
   /// Throws [PlatformException] when the platform refuses — code

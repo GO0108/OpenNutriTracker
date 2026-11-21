@@ -303,6 +303,7 @@ void main() {
       expect(health.requestedTypes, [
         HealthDataType.WORKOUT,
         HealthDataType.WEIGHT,
+        HealthDataType.STEPS,
         HealthDataType.TOTAL_CALORIES_BURNED,
       ]);
     });
@@ -317,7 +318,6 @@ void main() {
             isIn([
               HealthDataType.BODY_FAT_PERCENTAGE,
               HealthDataType.DISTANCE_DELTA,
-              HealthDataType.STEPS,
             ]),
           ),
         ),

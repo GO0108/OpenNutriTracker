@@ -1633,5 +1633,31 @@
   "@goalSuggestionExtraBurn": {
     "description": "When the rate would need eating below the safe floor: the exercise needed on top.",
     "placeholders": {"burn": {"type": "String"}}
+  },
+  "stepsTitle": "Steps today",
+  "@stepsTitle": {
+    "description": "Title of the home card showing today's steps from Health Connect."
+  },
+  "stepsCount": "{steps} steps · ≈{kcal} kcal",
+  "@stepsCount": {
+    "description": "Home steps card: today's steps and the estimated energy of walking them.",
+    "placeholders": {"steps": {"type": "String"}, "kcal": {"type": "String"}}
+  },
+  "stepsGoal": "Goal {goal}",
+  "@stepsGoal": {
+    "description": "Home steps card: the daily step target.",
+    "placeholders": {"goal": {"type": "String"}}
+  },
+  "stepsNote": "Estimate; not added to today's balance",
+  "@stepsNote": {
+    "description": "Home steps card: the kcal figure is informational and does not change the calorie budget."
+  },
+  "stepsConnect": "Allow access to steps in Health Connect",
+  "@stepsConnect": {
+    "description": "Home steps card when the steps permission is missing."
+  },
+  "stepsAllow": "Allow",
+  "@stepsAllow": {
+    "description": "Button on the home steps card that opens the Health Connect permission sheet."
   }
 }

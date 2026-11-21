@@ -1157,5 +1157,11 @@
   "goalSuggestionTitle": "Plano diário sugerido",
   "goalSuggestionDiet": "Coma cerca de {kcal} kcal por dia",
   "goalSuggestionWalk": "ou caminhe rápido {minutes} min por dia (≈{burn} kcal) e coma cerca de {kcal} kcal",
-  "goalSuggestionExtraBurn": "Esse é o mínimo seguro: queime também cerca de {burn} kcal por dia com exercício para manter o ritmo"
+  "goalSuggestionExtraBurn": "Esse é o mínimo seguro: queime também cerca de {burn} kcal por dia com exercício para manter o ritmo",
+  "stepsTitle": "Passos hoje",
+  "stepsCount": "{steps} passos · ≈{kcal} kcal",
+  "stepsGoal": "Meta {goal}",
+  "stepsNote": "Estimativa; não entra no saldo do dia",
+  "stepsConnect": "Permita o acesso aos passos no Health Connect",
+  "stepsAllow": "Permitir"
 }
